@@ -1,0 +1,342 @@
+Topics in this sheet:
+
+installation of docker
+working with docker images
+Docker commands for containers and images
+Micrometer and Observabililty
+Zipkin
+
+Microservices turned into images and pushing to docker 
+Docker Compose yaml file
+About Network(https://docs.docker.com/compose/networking/)
+
+
+
+Installation Docker (For ubuntu):
+
+docs.docker.com/desktop (find the right operating system configuration)'
+
+for testing run in command line "docker run hello-world"
+
+Docker was initially unable to find the hello-world image locally, so it downloaded the image from Docker Hub, which is the default repository. Once the image downloaded, Docker created a container from the image and the application within the container executed, displaying the message.
+
+after installation process check if docker is installed
+docker --version
+
+to run any container in local machine run the following command:
+docker run in28min/todo-rest-api-h2:1.0.0.RELEASE
+
+if no images is found in your local system then it will download the image from the registry (hub.docker.com) and in28min/todo-rest-api-h2 which hosts the number of tags and 1.0.0.0.RELEASE as the version we want to use.
+So every image contain all the details and configuration which particular image needs to run. It contains the right softoware. like java8 or java11 and contains all the library which needs to run. 
+so from local registry your application is download to your local machine and it is ran as an applicaiton in your machine. 
+
+in all the repository so the image are the set of bytes. after downloading image you have to create the container (Container is just initialization of image which creates image copy and runs it inside container itself). for the same image you can have multiple container just by changing the port. 
+
+so followign is the command to run the application:
+
+$docker run -p 5000:5000 in28min/todo-rest-api-h2:1.0.0.RELEASE
+
+docker run -p 8006:8000 rohin4u03/mmv3-currency-exchange-service:0.0.1-SNAPSHOT
+
+
+by default any container that run is part of called "bridge network" in docker. you can kind of think like internal docker network. We have to expose it onto the host or network is running. So here we have to map it with the host port 5000 with the system port. 
+
+press ctrl+C the contaner would be killed.
+
+docker container can be run as daemon with follwing command:
+
+$docker run -p 5000:5000  -d in28min/todo-rest-api-h2:1.0.0.RELEASE (-d is for detached mode) press enter you will get container id.
+
+you can check details in docker log by followign command
+
+$docker logs <container id>
+
+to follow the log:
+
+$docker logs -f c9b5
+
+--> to see all container
+$docker container ls
+
+$docker images (only shows images that are local to us) which is pulled from docker registry previously 
+
+$docker container ls -a (shows all the container irrespective of their status)
+
+$docker container stop <cotainer id> stops the container 
+
+the place we were running the commands in called "Docker client" and when we type command then this will be sent out to Docker Daemon or docker engine for execution. So when we install docker desktop we were installing (daemon and client) 
+
+Docker daemon is responsible to manage the "container", "local image"  and pulling/pushing somethign from the "image registry" . Docker Daemon can process instructions to create images as well. 
+
+Commands to the different images:
+
+to the same images we can give multiple tags: 
+$docker tag in28min/todo-rest-api-h2:1.0.0.RELEASE  in28min/todo-rest-api-h2:1.0.0.LATEST
+
+$docker pull sql (it only pulls the images from hub to your local machine it doesn't run it). $docker run checks if the images are available. adn if not avaialble then it will pull the image and then creates a container.
+ 
+$docker search myql (search any image if it contains mysql). 
+
+$docker image  history (it will history of image)
+
+$docker image inspect <image id>
+
+$docker image remove <image id> (it will remove image from the local machine)
+
+$docker container run -p in28min/todo-rest-api-h2:1.0.0.RELEASE  is susbstitute of $docker run -p <version name)
+
+
+$docker container pause <container id>
+$docker container unpause <container id>
+
+$docker container insepect <container id>
+
+$docker container prune (this will remove all the stopped container)
+
+$docker container logs -f <container id>
+
+$docker container stop <container id> (when you call stop on the container it gives some time for the container to shut down, things like closing down the connection pool, shutting down the exeuctor service).
+
+$docker container kill <container id> (where container will not be givne any time to shutting down)
+
+$docker container run -p 5000:5000 -d --restart=always in28min/todo-rest-api-h2:1.0.0.RELEASE (this container will automatically started at the time of docker terminal running) so to remove the restart situation you have to stop the container and then prune the container
+
+$docker events
+
+$docker top(what is the top process which is runnign in a container)
+
+$docker stats (shows all the stats regarding the contanier which are running)
+
+$docker container run -p  5001:5000 -m 512m --cpu-quota 50000 -d in28min/todo-rest-api-h2:1.0.0.RELEASE  (this container will run with given 512mb and assigning 50% quota of total memory of cpu)
+
+$docker system df(here shows all the things which docker daemon manages) so it manages Imges, Container, Build Cache, Local Volumes) 
+
+Distributed Tracing (ZIPKIN):
+
+All the microservices involved actually send the information out to the single distributed tracing server. And this distributed server would store everything to a database cab inmemory or real db. So in order to get details of the microservices involved in the chain like taking time to process, running time, etc. 
+
+to run the zipkin:
+
+$docker run -p 9411:9411 openzipkin/zipkin:2.23
+
+Monitering: monetering  is all about  looking at matrics. monering is subset of observability. monitoring is reactive. In monitering we try to get matrics, logs and traces. 
+Observabililty: how well do we understand that  what is happening in  the system. To detect something wrong is happend in the system by using AI.OPS anamalydetecting. In observalibility we try to getting inteligence from the data gathered by monetering and this intelligence would help us to detect problems faster.
+
+Open telemetry: All application have metrics, logs and traces. 
+
+	
+Micrometer: micrometer can handle log, metrics and traces as well. Micrometer is a vendor nuteral application observability fasade it can instrument your jvm based applicaiton code without vendor login. 
+Open Telemetry: it is an open standard for metrics, logs and tracing. 
+following are the dependecies to be used:
+
+<dependency>
+	<groupId>io.micrometer</groupId>
+	<artifactId>micrometer-observation</artifactId>
+</dependency>
+<dependency>
+	<groupId>io.micrometer</groupId>
+	<artifactId>micrometer-tracing-bridge-otel</artifactId>
+</dependency>
+
+<dependency>
+    <groupId>io.opentelemetry</groupId>
+    <artifactId>opentelemetry-exporter-zipkin</artifactId>
+</dependency>
+
+Sampling:
+
+if we are tracing all the request which is coming to all the microservices. There would a big performance impact. 
+for springboot 2 we have to use following 
+
+spring.sleuth.sampler.probability=1.0
+
+for springboot 3
+management.tracing.sampling.probability=1.0 (here 1.0 means we want to trace every request. for 5% of the request= 0.05)
+logging.pattern.level=%5p [${spring.application.name:},%X{traceId:-},%X{spanId:-}]
+
+so if using feign client we have to configure additional dependency which is 
+
+		<dependency>
+ 			<groupId>io.github.openfeign</groupId>
+ 			<artifactId>feign-micrometer</artifactId>
+ 		</dependency>
+
+for creating rest template we have to inject the rest template by creating bean. 
+
+@Configuration(proxyBeanMethods = false)
+class RestTemplateConfiguration {
+    
+    @Bean
+    RestTemplate restTemplate(RestTemplateBuilder builder) {
+        return builder.build();
+    }
+}
+
+<build>
+		<plugins>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<configuration>
+					<image>
+						<name>in28min/mmv3-${project.artifactId}:${project.version}</name>
+					</image>
+					<pullPolicy>IF_NOT_PRESENT</pullPolicy>
+				</configuration>				
+			</plugin>
+		</plugins>
+	</build>
+	
+to create an image by maven run configuration	
+spring-boot:build-image	
+
+Docker Compose:
+
+docker compose is used to run multiple microservices connected or not conected with each other. for that we have to write docker-compose.yml file. 
+
+version: '3.7'
+
+services:
+
+  currency-exchange:
+    image: in28min/mmv3-currency-exchange-service:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8000:8000"
+    networks:
+      - currency-network
+    depends_on:
+      - naming-server
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin-server:9411/api/v2/spans
+
+  currency-conversion:
+    image: in28min/mmv3-currency-conversion-service:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8100:8100"
+    networks:
+      - currency-network
+    depends_on:
+      - naming-server
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin-server:9411/api/v2/spans
+
+  api-gateway:
+    image: in28min/mmv3-api-gateway:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8765:8765"
+    networks:
+      - currency-network
+    depends_on:
+      - naming-server
+    environment:
+      EUREKA.CLIENT.SERVICEURL.DEFAULTZONE: http://naming-server:8761/eureka
+      MANAGEMENT.ZIPKIN.TRACING.ENDPOINT: http://zipkin-server:9411/api/v2/spans
+
+  naming-server:
+    image: in28min/mmv3-naming-server:0.0.1-SNAPSHOT
+    mem_limit: 700m
+    ports:
+      - "8761:8761"
+    networks:
+      - currency-network
+
+#docker run -p 9411:9411 openzipkin/zipkin:2.23
+
+  zipkin-server:
+    image: openzipkin/zipkin:2.23
+    mem_limit: 300m
+    ports:
+      - "9411:9411"
+    networks:
+      - currency-network
+    restart: always #Restart if there is a problem starting up
+
+networks:
+  currency-network:
+
+  
+
+then go to the folder where "docker-compose.yml" file is saved. 
+
+then type in command line =>   docker-compose up
+application will be started. if multiple microservices are configured then all microservices will be get started. 
+
+networks: By default Compose sets up a single network for your app. Each container for a service joins the default network and is both reachable by other containers on that network, and discoverable by them at a hostname identical to the container name.
+
+services:
+  web:
+    build: .
+    ports:
+      - "8000:8000"
+  db:
+    image: postgres
+    ports:
+      - "8001:5432"
+
+For example, suppose your app is in a directory called myapp, and your compose.yml looks like this:
+
+
+When you run docker compose up, the following happens:
+
+A network called myapp_default is created.
+A container is created using web's configuration. It joins the network myapp_default under the name web.
+A container is created using db's configuration. It joins the network myapp_default under the name db.
+Each container can now look up the hostname web or db and get back the appropriate container's IP address. For example, web's application code could connect to the URL postgres://db:5432 and start using the Postgres database.	  
+
+to deploy the image you have to first run command in spring configuration run :  spring-boot:build-image -DskipTests 
+
+it will create image in local docker repository 
+
+rohindockerimage/mmv3-currency-exchange-service:0.0.1-SNAPSHOT'
+
+to push this image to the docker hub, you have to login to
+
+you can tag your username with you docker registry with image name by using following tag:
+
+docker tag rohindockerimage/mmv3-currency-exchange-service:0.0.1-SNAPSHOT rohin4u03/mmv3-currency-exchange-service:0.0.1-SNAPSHOT
+
+then we have push the image to the docker repository:
+			
+docker push rohin4u03/mmv3-currency-exchange-service:0.0.1-SNAPSHOT
+
+Link containers
+Links allow you to define extra aliases by which a service is reachable from another service. They are not required to enable services to communicate. By default, any service can reach any other service at that service's name. In the following example, db is reachable from web at the hostnames db and database:
+
+services:
+
+  web:
+    build: .
+    links:
+      - "db:database"
+  db:
+    image: postgres
+
+kafka-console-producer.sh --topic  transaction-1  --bootstrap-server localhost:9092
+
+kafka-console-consumer.sh --topic transaction-1 --from-beginning --bootstrap-server localhost:9092
+
+docker run -d --name kafka --network kafka-elasticsearch-network -p 9092:9092 -e KAFKA_ADVERTISED_HOST_NAME=your_host_name_or_ip -e KAFKA_ADVERTISED_PORT=9092 confluentinc/cp-kafka
+
+docker run -d --name elasticsearch --network kafka-elasticsearch-network -p 9200:9200 -p 9300:9300 -e "discovery.type=single-node" docker.elastic.co/elasticsearch/elasticsearch:7.x
+
+/home/appinventiv/eclipse-workspace/docker_mysql_demo/target/docker_mysql_demo-0.0.1-SNAPSHOT.jar
+
+
+docker container run -d --name mysql-db -e mysql_root_password=password -e mysql_database=student_schema
+-e mysql_user=root -e mysql_password=root  mysql:mysql
+
+to get into the mysql container 
+$ docker exec -it <container_id> bash
+
+
+
+https://github.com/rohin4u/docker-mysql-springboot-demo.git
+
+https://github.com/rohin4u/docker-h2-demo.git
+
+
